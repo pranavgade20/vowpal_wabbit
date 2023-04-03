@@ -10,6 +10,8 @@
 #include <fmt/format.h>
 
 #include <numeric>
+#include <iostream>
+#include <fstream>
 
 namespace simulator
 {
@@ -135,6 +137,8 @@ std::vector<float> cb_sim::run_simulation_hook(VW::workspace* vw, size_t num_ite
   bool swap_reward = false;
   auto swap_after_iter = swap_after.begin();
 
+  std::ofstream logfile("log.csv");
+  logfile << "i,user,time_of_day,chosen_action,prob,cost\n";
   for (size_t i = shift; i < shift + num_iterations; ++i)
   {
     if (swap_after_iter != swap_after.end())
@@ -167,6 +171,9 @@ std::vector<float> cb_sim::run_simulation_hook(VW::workspace* vw, size_t num_ite
     float cost = get_reaction(context, chosen_action, add_noise, swap_reward, scale_reward);
     cost_sum += cost;
 
+    // write to the logfile
+    logfile << i << "," << user << "," << time_of_day << "," << chosen_action << "," << prob << "," << cost << "\n";
+
     if (do_learn)
     {
       // 5. Inform VW of what happened so we can learn from it
@@ -186,6 +193,9 @@ std::vector<float> cb_sim::run_simulation_hook(VW::workspace* vw, size_t num_ite
     // We negate this so that on the plot instead of minimizing cost, we are maximizing reward
     ctr.push_back(-1 * cost_sum / static_cast<float>(i));
   }
+
+  logfile << std::endl;
+  logfile.close(); // close the logfile
 
   // avoid silently failing: ensure that all callbacks
   // got called and then cleanup

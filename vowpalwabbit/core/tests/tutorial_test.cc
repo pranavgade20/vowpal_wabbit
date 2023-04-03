@@ -5,6 +5,7 @@
 #include "simulator.h"
 
 #include <gtest/gtest.h>
+#include <fstream>
 
 TEST(Tutorial, CppSimulatorWithoutInteraction)
 {
@@ -12,6 +13,18 @@ TEST(Tutorial, CppSimulatorWithoutInteraction)
       std::vector<std::string>{"--cb_explore_adf", "--quiet", "--epsilon=0.2", "--random_seed=5"});
   EXPECT_GT(ctr.back(), 0.37f);
   EXPECT_LT(ctr.back(), 0.49f);
+}
+
+TEST(Tutorial, CppSimulatorWithoutInteractionToLogfile)
+{
+  auto ctr = simulator::_test_helper(
+      std::vector<std::string>{"--cb_explore_adf", "--quiet", "--epsilon=0.2", "--random_seed=5"});
+  std::ifstream logfile("log.csv");
+  std::string s1;
+  logfile >> s1;
+  EXPECT_PRED2([](std::string s1, std::string s2) {
+        return s1 == s2;}, s1, "i,user,time_of_day,chosen_action,prob,cost");
+  // more tests can be written to verify the datatype of the csv contents and so on
 }
 
 TEST(Tutorial, CppSimulatorWithInteraction)
